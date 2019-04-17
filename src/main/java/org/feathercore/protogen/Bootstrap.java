@@ -58,7 +58,7 @@ public class Bootstrap {
         if (!finalDir.exists()) {
             finalDir.mkdir();
         }
-        File out = new File(finalDir, info.getName() + ".java");
+        File out = new File(finalDir, info.getStandardClassName() + ".java");
         try (FileOutputStream fos = new FileOutputStream(out)) {
             fos.write(generated.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {

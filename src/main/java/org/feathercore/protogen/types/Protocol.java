@@ -20,8 +20,18 @@ package org.feathercore.protogen.types;
  * @author xtrafrancyz
  */
 public enum Protocol {
-    HANDSHAKING,
-    PLAY,
-    STATUS,
-    LOGIN
+    HANDSHAKING("Handshake"),
+    PLAY("Play"),
+    STATUS("Status"),
+    LOGIN("Login");
+
+    final String commonName;
+
+    Protocol(final String commonName) {
+        this.commonName = commonName;
+    }
+
+    public String getCommonName() {
+        return commonName;
+    }
 }

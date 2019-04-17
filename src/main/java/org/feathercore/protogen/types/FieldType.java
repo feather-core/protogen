@@ -46,10 +46,6 @@ public enum FieldType {
     private final String javaType;
     private final String bufferMethod;
 
-    FieldType() {
-        this(null, null);
-    }
-
     FieldType(String javaType, final String bufferMethod) {
         this.javaType = javaType;
         this.bufferMethod = bufferMethod;

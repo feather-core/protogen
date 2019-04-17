@@ -57,6 +57,15 @@ public class WikiPacketInfo {
         return name;
     }
 
+    public String getNonPrefixedName() {
+        return name.startsWith("Packet") ? name.substring(6) : name;
+    }
+
+    // <Phase>Packet<Sender><Name>
+    public String getStandardClassName() {
+        return protocol.getCommonName() + "Packet" + sender.getCommonName() + getNonPrefixedName();
+    }
+
     public int getId() {
         return id;
     }

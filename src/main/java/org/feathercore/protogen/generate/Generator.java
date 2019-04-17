@@ -46,7 +46,7 @@ public class Generator {
         sb.append(LF).append(LF);
 
         sb.append("package org.feathercore.protocol.minecraft.packet.")
-          .append(info.getProtocol().name().toLowerCase())
+          .append(info.getProtocol().getCommonName().toLowerCase())
           .append('.')
           .append(info.getSender().name().toLowerCase())
           .append(';')
@@ -59,8 +59,8 @@ public class Generator {
         if (!info.getFields().isEmpty()) {
             sb.append("import lombok.AllArgsConstructor;").append(LF);
             sb.append("import lombok.NoArgsConstructor;").append(LF);
+            sb.append("import lombok.experimental.FieldDefaults;").append(LF);
         }
-        sb.append("import lombok.experimental.FieldDefaults;").append(LF);
         sb.append("import org.feathercore.protocol.Buffer;").append(LF);
         sb.append("import org.feathercore.protocol.minecraft.packet.MinecraftPacket;").append(LF);
         sb.append("import org.jetbrains.annotations.NotNull;").append(LF);
@@ -71,20 +71,20 @@ public class Generator {
         sb.append(LF);
 
         if (info.isBroken()) {
-            sb.append("// CRITICAL !!").append(LF);
-            sb.append("// This class is totally broken. Unknown types and brown shit.").append(LF);
+            sb.append("// FIXME: CRITICAL !!").append(LF);
+            sb.append("// This class is totally broken. Unknown types and magical unicorns.").append(LF);
             sb.append("// https://wiki.vg/Protocol#").append(info.getOriginalName().replace(" ", "_")).append(LF);
             sb.append(LF);
         } else {
             if (info.hasNulls()) {
-                sb.append("// WARNING !!").append(LF);
+                sb.append("// FIXME: WARNING !!").append(LF);
                 sb.append("// This class has null fields that are not included in generated class.").append(LF);
                 sb.append("// https://wiki.vg/Protocol#").append(info.getOriginalName().replace(" ", "_")).append(LF);
                 sb.append(LF);
             }
 
             if (info.hasOptionals()) {
-                sb.append("// WARNING !!").append(LF);
+                sb.append("// FIXME: FIXME !!").append(LF);
                 sb.append("// This class has optional fields. You need to write valid reader and writer.").append(LF);
                 sb.append("// https://wiki.vg/Protocol#").append(info.getOriginalName().replace(" ", "_")).append(LF);
                 sb.append(LF);
@@ -111,9 +111,11 @@ public class Generator {
         if (!info.getFields().isEmpty()) {
             sb.append("@NoArgsConstructor").append(LF);
             sb.append("@AllArgsConstructor").append(LF);
+            sb.append("@FieldDefaults(level = AccessLevel.PROTECTED)").append(LF);
         }
-        sb.append("@FieldDefaults(level = AccessLevel.PROTECTED)").append(LF);
-        sb.append("public class ").append(info.getName()).append(" implements MinecraftPacket {").append(LF);
+        sb.append("public class ")
+          .append(info.getStandardClassName())
+          .append(" implements MinecraftPacket {").append(LF);
         sb.append(LF);
 
         // ID field
@@ -144,7 +146,6 @@ public class Generator {
         sb.append(T2).append("return ID;").append(LF);
         sb.append(T1).append("}").append(LF);
 
-        sb.append(LF);
         sb.append("}").append(LF);
 
         return sb.toString();

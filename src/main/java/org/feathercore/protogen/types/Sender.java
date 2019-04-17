@@ -20,6 +20,16 @@ package org.feathercore.protogen.types;
  * @author xtrafrancyz
  */
 public enum Sender {
-    CLIENT,
-    SERVER
+    CLIENT("Client"),
+    SERVER("Server");
+
+    final String commonName;
+
+    Sender(final String commonName) {
+        this.commonName = commonName;
+    }
+
+    public String getCommonName() {
+        return commonName;
+    }
 }
