@@ -40,24 +40,30 @@ public class Bootstrap {
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
             System.out.println("Choose what to generate:");
-            System.out.println("    sounds, particles or packets");
+            System.out.println("    sounds, particles, packets or all");
             return;
         }
 
         FileUtil.deleteRecursive(VALID_DIR);
         FileUtil.deleteRecursive(BROKEN_DIR);
 
-        for (int i = 0; i < args.length; i++) {
-            switch (args[i].toLowerCase()) {
-                case "sounds":
-                    genSounds();
-                    break;
-                case "particles":
-                    genParticles();
-                    break;
-                case "packets":
-                    genPackets();
-                    break;
+        if (args.length == 1 && args[0].equalsIgnoreCase("all")) {
+            genSounds();
+            genParticles();
+            genPackets();
+        } else {
+            for (int i = 0; i < args.length; i++) {
+                switch (args[i].toLowerCase()) {
+                    case "sounds":
+                        genSounds();
+                        break;
+                    case "particles":
+                        genParticles();
+                        break;
+                    case "packets":
+                        genPackets();
+                        break;
+                }
             }
         }
     }
