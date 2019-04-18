@@ -1,6 +1,4 @@
-# Primary programming language of the repository
 language: java
-# JDK to test against (currently, only OpenJDK 8 is used)
 jdk:
   - openjdk8
 
@@ -13,18 +11,13 @@ cache:
   directories:
     - $HOME/.m2
 
-# Build ZIP-archive of resourcepack from `resourcepack/` directory
 before_deploy:
   - zip -r generated.zip gen/ gen-broken/
 
 deploy:
-  # Provider for GutHub Releases
   provider: releases
-  # Set in TravisCI Web UI
   api_key: $GITHUB_RELEASES_OATH_TOKEN
-  # File to be deployed
   file: generated.zip
-  # Do not delete files generated while building
   skip_cleanup: true
   on:
-    branch: master
+    tag: true
