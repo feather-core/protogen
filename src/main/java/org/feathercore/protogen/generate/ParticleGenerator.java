@@ -24,6 +24,8 @@ import java.util.List;
  * @author xtrafrancyz
  */
 public class ParticleGenerator extends ClassGenerator {
+    public static final String CLASS_NAME = "MinecraftParticle";
+
     private List<WikiParticle> particles;
 
     public ParticleGenerator(List<WikiParticle> particles) {
@@ -32,49 +34,52 @@ public class ParticleGenerator extends ClassGenerator {
 
     @Override
     protected void generateClass() {
-        sb.append("package org.feathercore.protocol.particle;")
+        sb.append("package org.feathercore.shared.particle;")
           .append(LF).append(LF);
 
-        sb.append("public enum Particle {").append(LF);
+        sb.append("public enum ").append(CLASS_NAME).append(" implements Particle {").append(LF);
         appendParticles();
 
         sb.append(LF);
 
         // Instance fields
         sb.append(T1).append("private final String name;").append(LF);
-        sb.append(T1).append("private final int id;").append(LF);
+        sb.append(T1).append("private final int nativeId;").append(LF);
         sb.append(T1).append("private final boolean complex;").append(LF);
 
         sb.append(LF);
 
         // Constructor
-        sb.append(T1).append("Particle(String name, int id) {").append(LF);
-        sb.append(T2).append("this(name, id, false);").append(LF);
+        sb.append(T1).append(CLASS_NAME).append("(String name, int nativeId) {").append(LF);
+        sb.append(T2).append("this(name, nativeId, false);").append(LF);
         sb.append(T1).append("}").append(LF);
 
         sb.append(LF);
 
-        sb.append(T1).append("Particle(String name, int id, boolean complex) {").append(LF);
+        sb.append(T1).append(CLASS_NAME).append("(String name, int nativeId, boolean complex) {").append(LF);
         sb.append(T2).append("this.name = name;").append(LF);
-        sb.append(T2).append("this.id = id;").append(LF);
+        sb.append(T2).append("this.nativeId = nativeId;").append(LF);
         sb.append(T2).append("this.complex = complex;").append(LF);
         sb.append(T1).append("}").append(LF);
 
         sb.append(LF);
 
         // Methods
+        sb.append(T1).append("@Override").append(LF);
         sb.append(T1).append("public String getName() {").append(LF);
         sb.append(T2).append("return this.name;").append(LF);
         sb.append(T1).append("}").append(LF);
 
         sb.append(LF);
 
-        sb.append(T1).append("public int getId() {").append(LF);
-        sb.append(T2).append("return this.id;").append(LF);
+        sb.append(T1).append("@Override").append(LF);
+        sb.append(T1).append("public int getNativeId() {").append(LF);
+        sb.append(T2).append("return this.nativeId;").append(LF);
         sb.append(T1).append("}").append(LF);
 
         sb.append(LF);
 
+        sb.append(T1).append("@Override").append(LF);
         sb.append(T1).append("public boolean isComplex() {").append(LF);
         sb.append(T2).append("return this.complex;").append(LF);
         sb.append(T1).append("}").append(LF);

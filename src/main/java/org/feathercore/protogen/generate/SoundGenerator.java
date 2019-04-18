@@ -24,6 +24,8 @@ import java.util.List;
  * @author xtrafrancyz
  */
 public class SoundGenerator extends ClassGenerator {
+    public static final String CLASS_NAME = "MinecraftSound";
+    
     private List<BurgerSound> sounds;
 
     public SoundGenerator(List<BurgerSound> sounds) {
@@ -32,10 +34,10 @@ public class SoundGenerator extends ClassGenerator {
 
     @Override
     protected void generateClass() {
-        sb.append("package org.feathercore.protocol.sound;")
+        sb.append("package org.feathercore.shared.sound;")
           .append(LF).append(LF);
 
-        sb.append("public enum MinecraftSound implements Sound {").append(LF);
+        sb.append("public enum ").append(CLASS_NAME).append(" implements Sound {").append(LF);
         appendSounds();
 
         sb.append(LF);
@@ -47,7 +49,7 @@ public class SoundGenerator extends ClassGenerator {
         sb.append(LF);
 
         // Constructor
-        sb.append(T1).append("MinecraftSound(String name, int nativeId) {").append(LF);
+        sb.append(T1).append(CLASS_NAME).append("(String name, int nativeId) {").append(LF);
         sb.append(T2).append("this.name = name;").append(LF);
         sb.append(T2).append("this.nativeId = nativeId;").append(LF);
         sb.append(T1).append("}").append(LF);
@@ -64,7 +66,7 @@ public class SoundGenerator extends ClassGenerator {
 
         sb.append(T1).append("@Override").append(LF);
         sb.append(T1).append("public int getNativeId() {").append(LF);
-        sb.append(T2).append("return this.id;").append(LF);
+        sb.append(T2).append("return this.nativeId;").append(LF);
         sb.append(T1).append("}").append(LF);
 
         sb.append(LF);

@@ -65,12 +65,12 @@ public class Bootstrap {
     private static void genParticles() throws Exception {
         //String generated = new ParticleGenerator(new WikiReader(new File("proto.html")).getParticles()).generate();
         String generated = new ParticleGenerator(WIKI.get().getParticles()).generate();
-        FileUtil.writeFile(new File(VALID_DIR, "Particle.java"), generated);
+        FileUtil.writeFile(new File(VALID_DIR, ParticleGenerator.CLASS_NAME + ".java"), generated);
     }
 
     private static void genSounds() throws Exception {
         String generated = new SoundGenerator(BURGER.get().getSounds()).generate();
-        FileUtil.writeFile(new File(VALID_DIR, "MinecraftSounds.java"), generated);
+        FileUtil.writeFile(new File(VALID_DIR, SoundGenerator.CLASS_NAME + ".java"), generated);
     }
 
     private static void genPackets() throws Exception {
