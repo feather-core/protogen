@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) dmulloy2 <http://dmulloy2.net>
  * Copyright (C) Kristian S. Strangeland
  * Copyright (C) xtrafrancyz <https://xtrafrancyz.net>
@@ -68,7 +68,6 @@ public class WikiPacketField {
             Matcher matcher = SIZE_EXTRACTOR.matcher(type);
             if (!matcher.matches()) {
                 this.stringTypeSize = 32767;
-                System.out.println("Illegal string type: " + type);
             } else {
                 this.stringTypeSize = Integer.parseInt(matcher.group(1));
             }
@@ -100,7 +99,7 @@ public class WikiPacketField {
     public boolean isOptional() {
         return optional;
     }
-    
+
     public boolean isArray() {
         return array;
     }

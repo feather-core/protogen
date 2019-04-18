@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) dmulloy2 <http://dmulloy2.net>
  * Copyright (C) Kristian S. Strangeland
  * Copyright (C) xtrafrancyz <https://xtrafrancyz.net>
