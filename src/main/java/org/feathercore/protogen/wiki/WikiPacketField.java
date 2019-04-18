@@ -51,12 +51,17 @@ public class WikiPacketField {
         this.fieldType = FieldType.parse(type);
         this.notes = notes;
         if (name != null) {
-            if (name.equals("ID")) {
-                this.javaName = "id";
-            } else {
-                this.javaName =
-                        (Character.toLowerCase(name.charAt(0)) + name.substring(1).replace(" ", ""))
-                                .split("\\(")[0];
+            switch (name) {
+                case "ID":
+                    this.javaName = "id";
+                    break;
+                case "UUID":
+                    this.javaName = "uuid";
+                    break;
+                default:
+                    this.javaName = (name.substring(0, 1).toLowerCase() + name.substring(1).replace(" ", ""))
+                            .split("\\(")[0];
+                    break;
             }
         }
         if (fieldType == FieldType.STRING) {
