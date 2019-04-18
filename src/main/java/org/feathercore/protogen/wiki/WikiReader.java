@@ -2,17 +2,17 @@
  * Copyright (C) dmulloy2 <http://dmulloy2.net>
  * Copyright (C) Kristian S. Strangeland
  * Copyright (C) xtrafrancyz <https://xtrafrancyz.net>
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -43,25 +43,50 @@ import java.util.Set;
  *
  * @author Kristian
  */
-public class WikiPacketReader {
+public class WikiReader {
     public static final String STANDARD_URL = "http://www.wiki.vg/Protocol";
 
     // Stored packet information
     private List<WikiPacketInfo> packets;
+    private List<WikiParticle> particles;
 
-    public WikiPacketReader() throws IOException {
+    public WikiReader() throws IOException {
         this(STANDARD_URL);
     }
 
-    public WikiPacketReader(String url) throws IOException {
-        packets = loadFromDocument(Jsoup.connect(url).get());
+    public WikiReader(String url) throws IOException {
+        load(Jsoup.connect(url).get());
     }
 
-    public WikiPacketReader(File file) throws IOException {
-        packets = loadFromDocument(Jsoup.parse(file, null));
+    public WikiReader(File file) throws IOException {
+        load(Jsoup.parse(file, null));
     }
 
-    private List<WikiPacketInfo> loadFromDocument(Document doc) {
+    private void load(Document doc) {
+        packets = loadPackets(doc);
+        particles = loadParticles(doc);
+    }
+
+    private List<WikiParticle> loadParticles(Document doc) {
+        List<WikiParticle> list = new ArrayList<>();
+        Element table = doc.getElementById("Particle")
+                           .parent()
+                           .nextElementSibling()
+                           .nextElementSibling();
+        Elements rows = table.child(0).children();
+
+        for (int i = 1; i < rows.size(); i++) {
+            Elements tds = rows.get(i).getElementsByTag("td");
+            String name = tds.get(0).text();
+            int id = Integer.parseInt(tds.get(1).text().trim());
+            boolean complex = !tds.get(2).text().trim().equals("None");
+            list.add(new WikiParticle(name, id, complex));
+        }
+
+        return list;
+    }
+
+    private List<WikiPacketInfo> loadPackets(Document doc) {
         List<WikiPacketInfo> packets = new ArrayList<WikiPacketInfo>();
         Element bodyContent = doc.getElementById("mw-content-text");
 
@@ -213,5 +238,9 @@ public class WikiPacketReader {
 
     public List<WikiPacketInfo> getPackets() {
         return packets;
+    }
+
+    public List<WikiParticle> getParticles() {
+        return particles;
     }
 }

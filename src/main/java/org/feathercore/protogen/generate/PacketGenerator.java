@@ -28,23 +28,15 @@ import java.util.Map;
 /**
  * @author xtrafrancyz
  */
-public class Generator {
-    private static final String LF = "\n";
-    private static final String T1 = "    ";
-    private static final String T2 = T1 + T1;
-    private static final String T3 = T2 + T1;
-
+public class PacketGenerator extends ClassGenerator {
     private WikiPacketInfo info;
 
-    public Generator(WikiPacketInfo info) {
+    public PacketGenerator(WikiPacketInfo info) {
         this.info = info;
     }
 
-    public String generateClass() {
-        StringBuilder sb = new StringBuilder();
-        appendCopyright(sb);
-        sb.append(LF).append(LF);
-
+    @Override
+    protected void generateClass() {
         sb.append("package org.feathercore.protocol.minecraft.packet.")
           .append(info.getProtocol().getCommonName().toLowerCase())
           .append('.')
@@ -124,7 +116,7 @@ public class Generator {
         sb.append(LF);
 
         // Fields
-        appendFields(sb);
+        appendFields();
         sb.append(LF);
 
         // Constructor
@@ -133,9 +125,9 @@ public class Generator {
 
         // Write / Read
         if (info.getSender() == Sender.SERVER) {
-            appendWrite(sb);
+            appendWrite();
         } else {
-            appendRead(sb);
+            appendRead();
         }
 
         sb.append(LF);
@@ -147,11 +139,9 @@ public class Generator {
         sb.append(T1).append("}").append(LF);
 
         sb.append("}").append(LF);
-
-        return sb.toString();
     }
 
-    private void appendFields(StringBuilder sb) {
+    private void appendFields() {
         for (WikiPacketField field : info.getFields()) {
             if (field.getSizeOf() != null) {
                 continue;
@@ -183,7 +173,7 @@ public class Generator {
         }
     }
 
-    private void appendConstructors(StringBuilder sb) {
+    private void appendConstructors() {
         sb.append(T1).append("public ").append(info.getName()).append("() {}")
           .append(LF).append(LF);
 
@@ -209,7 +199,7 @@ public class Generator {
         sb.append(T1).append('}').append(LF);
     }
 
-    private void appendWrite(StringBuilder sb) {
+    private void appendWrite() {
         sb.append(T1).append("@Override").append(LF);
         sb.append(T1).append("public void write(@NotNull final Buffer buffer) {").append(LF);
         for (WikiPacketField field : info.getFields()) {
@@ -247,7 +237,7 @@ public class Generator {
         sb.append(T1).append("}").append(LF);
     }
 
-    private void appendRead(StringBuilder sb) {
+    private void appendRead() {
         sb.append(T1).append("@Override").append(LF);
         sb.append(T1).append("public void read(@NotNull final Buffer buffer) {").append(LF);
         Map<WikiPacketField, String> arraySizes = new HashMap<>();
@@ -309,24 +299,6 @@ public class Generator {
             }
         }
         sb.append(T1).append("}").append(LF);
-    }
-
-    private void appendCopyright(StringBuilder sb) {
-        sb.append("/*\n"
-                + " * Copyright 2019 Feather Core\n"
-                + " *\n"
-                + " * Licensed under the Apache License, Version 2.0 (the \"License\");\n"
-                + " * you may not use this file except in compliance with the License.\n"
-                + " * You may obtain a copy of the License at\n"
-                + " *\n"
-                + " *     http://www.apache.org/licenses/LICENSE-2.0\n"
-                + " *\n"
-                + " * Unless required by applicable law or agreed to in writing, software\n"
-                + " * distributed under the License is distributed on an \"AS IS\" BASIS,\n"
-                + " * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n"
-                + " * See the License for the specific language governing permissions and\n"
-                + " * limitations under the License.\n"
-                + " */");
     }
 
     private String getBeautifulId() {

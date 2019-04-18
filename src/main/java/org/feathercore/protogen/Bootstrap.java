@@ -16,62 +16,70 @@
 
 package org.feathercore.protogen;
 
-import org.feathercore.protogen.generate.Generator;
+import org.feathercore.protogen.burger.BurgerReader;
+import org.feathercore.protogen.generate.PacketGenerator;
+import org.feathercore.protogen.generate.ParticleGenerator;
+import org.feathercore.protogen.generate.SoundGenerator;
+import org.feathercore.protogen.util.FileUtil;
 import org.feathercore.protogen.wiki.WikiPacketInfo;
-import org.feathercore.protogen.wiki.WikiPacketReader;
+import org.feathercore.protogen.wiki.WikiReader;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
  * @author xtrafrancyz
  */
-@SuppressWarnings({"ConstantConditions", "ResultOfMethodCallIgnored"})
 public class Bootstrap {
     private static final File VALID_DIR = new File("gen");
     private static final File BROKEN_DIR = new File("gen-broken");
 
-    public static void main(String[] args) throws IOException {
-        //List<WikiPacketInfo> packets = new WikiPacketReader(new File("proto.html")).getPackets();
-        List<WikiPacketInfo> packets = new WikiPacketReader().getPackets();
+    private static final CachedDataSource<BurgerReader> BURGER = new CachedDataSource<>(BurgerReader::new);
+    private static final CachedDataSource<WikiReader> WIKI = new CachedDataSource<>(WikiReader::new);
 
-        deleteRecursive(VALID_DIR);
-        VALID_DIR.mkdir();
-        deleteRecursive(BROKEN_DIR);
-        BROKEN_DIR.mkdir();
+    public static void main(String[] args) throws Exception {
+        if (args.length == 0) {
+            System.out.println("Choose what to generate:");
+            System.out.println("    sounds, particles or packets");
+            return;
+        }
 
-        for (WikiPacketInfo info : packets) {
-            save(info);
-        }
-    }
+        FileUtil.deleteRecursive(VALID_DIR);
+        FileUtil.deleteRecursive(BROKEN_DIR);
 
-    private static void save(WikiPacketInfo info) {
-        String generated = new Generator(info).generateClass();
-        File protoDir = new File(info.isBroken() ? BROKEN_DIR : VALID_DIR, info.getProtocol().name().toLowerCase());
-        if (!protoDir.exists()) {
-            protoDir.mkdir();
-        }
-        File finalDir = new File(protoDir, info.getSender().name().toLowerCase());
-        if (!finalDir.exists()) {
-            finalDir.mkdir();
-        }
-        File out = new File(finalDir, info.getStandardClassName() + ".java");
-        try (FileOutputStream fos = new FileOutputStream(out)) {
-            fos.write(generated.getBytes(StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static void deleteRecursive(File file) {
-        if (file.isDirectory()) {
-            for (File f : file.listFiles()) {
-                deleteRecursive(f);
+        for (int i = 0; i < args.length; i++) {
+            switch (args[i].toLowerCase()) {
+                case "sounds":
+                    genSounds();
+                    break;
+                case "particles":
+                    genParticles();
+                    break;
+                case "packets":
+                    genPackets();
+                    break;
             }
         }
-        file.delete();
+    }
+
+    private static void genParticles() throws Exception {
+        //String generated = new ParticleGenerator(new WikiReader(new File("proto.html")).getParticles()).generate();
+        String generated = new ParticleGenerator(WIKI.get().getParticles()).generate();
+        FileUtil.writeFile(new File(VALID_DIR, "Particle.java"), generated);
+    }
+
+    private static void genSounds() throws Exception {
+        String generated = new SoundGenerator(BURGER.get().getSounds()).generate();
+        FileUtil.writeFile(new File(VALID_DIR, "MinecraftSounds.java"), generated);
+    }
+
+    private static void genPackets() throws Exception {
+        List<WikiPacketInfo> packets = WIKI.get().getPackets();
+        for (WikiPacketInfo info : packets) {
+            String generated = new PacketGenerator(info).generate();
+            File protoDir = new File(info.isBroken() ? BROKEN_DIR : VALID_DIR, info.getProtocol().name().toLowerCase());
+            File finalDir = new File(protoDir, info.getSender().name().toLowerCase());
+            FileUtil.writeFile(new File(finalDir, info.getStandardClassName() + ".java"), generated);
+        }
     }
 }
