@@ -16,6 +16,7 @@
 
 package org.feathercore.protogen.burger;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -25,9 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * List of all versions: https://pokechu22.github.io/Burger/versions.json
@@ -38,6 +37,8 @@ public class BurgerReader {
     public static final String STANDARD_URL = "https://pokechu22.github.io/Burger/1.13.2.json";
 
     private List<BurgerSound> sounds;
+    private List<BurgerItem> items;
+    private Map<String, BurgerBlock> blocks;
 
     public BurgerReader() throws IOException {
         parse(NetworkUtil.get(STANDARD_URL));
@@ -54,15 +55,48 @@ public class BurgerReader {
                 .get(0)
                 .getAsJsonObject();
 
+        // Sounds
         this.sounds = new ArrayList<>();
         JsonObject sounds = root.getAsJsonObject("sounds");
         for (Map.Entry<String, JsonElement> entry : sounds.entrySet()) {
             JsonObject sound = entry.getValue().getAsJsonObject();
             this.sounds.add(new BurgerSound(entry.getKey(), sound.get("id").getAsInt()));
         }
+
+        // Items
+        this.items = new ArrayList<>();
+        JsonObject items = root.getAsJsonObject("items").getAsJsonObject("item");
+        for (Map.Entry<String, JsonElement> entry : items.entrySet()) {
+            this.items.add(new BurgerItem(entry.getValue().getAsJsonObject()));
+        }
+        this.items.sort(Comparator.comparing(BurgerItem::getId));
+
+        // Blocks
+        this.blocks = new LinkedHashMap<>();
+        JsonObject blocks = root.getAsJsonObject("blocks").getAsJsonObject("block");
+        Map<String, BurgerBlock> tempBlocks = new HashMap<>();
+        for (Map.Entry<String, JsonElement> entry : blocks.entrySet()) {
+            tempBlocks.put(entry.getKey(), new BurgerBlock(entry.getValue().getAsJsonObject()));
+        }
+        JsonArray blocksOrder = root.getAsJsonObject("blocks").getAsJsonArray("ordered_blocks");
+        for (JsonElement element : blocksOrder) {
+            BurgerBlock block = tempBlocks.get(element.getAsString());
+            if (block == null) {
+                throw new IllegalStateException("Block " + element.getAsString() + " is not found (order)");
+            }
+            this.blocks.put(element.getAsString(), block);
+        }
     }
 
     public List<BurgerSound> getSounds() {
         return sounds;
+    }
+
+    public List<BurgerItem> getItems() {
+        return items;
+    }
+
+    public Map<String, BurgerBlock> getBlocks() {
+        return blocks;
     }
 }

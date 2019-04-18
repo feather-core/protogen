@@ -17,6 +17,7 @@
 package org.feathercore.protogen;
 
 import org.feathercore.protogen.burger.BurgerReader;
+import org.feathercore.protogen.generate.MaterialGenerator;
 import org.feathercore.protogen.generate.PacketGenerator;
 import org.feathercore.protogen.generate.ParticleGenerator;
 import org.feathercore.protogen.generate.SoundGenerator;
@@ -25,7 +26,9 @@ import org.feathercore.protogen.wiki.WikiPacketInfo;
 import org.feathercore.protogen.wiki.WikiReader;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author xtrafrancyz
@@ -37,10 +40,19 @@ public class Bootstrap {
     private static final CachedDataSource<BurgerReader> BURGER = new CachedDataSource<>(BurgerReader::new);
     private static final CachedDataSource<WikiReader> WIKI = new CachedDataSource<>(WikiReader::new);
 
+    private static final Map<String, GenRunnable> GENERATORS = new HashMap<String, GenRunnable>() {{
+        put("materials", Bootstrap::genMaterials);
+        put("sounds", Bootstrap::genSounds);
+        put("particles", Bootstrap::genParticles);
+        put("packets", Bootstrap::genPackets);
+    }};
+
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
             System.out.println("Choose what to generate:");
-            System.out.println("    sounds, particles, packets or all");
+            System.out.println("    " + String.join(", ", GENERATORS.keySet()));
+            System.out.println("       or");
+            System.out.println("    all");
             return;
         }
 
@@ -48,24 +60,22 @@ public class Bootstrap {
         FileUtil.deleteRecursive(BROKEN_DIR);
 
         if (args.length == 1 && args[0].equalsIgnoreCase("all")) {
-            genSounds();
-            genParticles();
-            genPackets();
+            for (GenRunnable gen : GENERATORS.values()) {
+                gen.run();
+            }
         } else {
-            for (int i = 0; i < args.length; i++) {
-                switch (args[i].toLowerCase()) {
-                    case "sounds":
-                        genSounds();
-                        break;
-                    case "particles":
-                        genParticles();
-                        break;
-                    case "packets":
-                        genPackets();
-                        break;
+            for (final String arg : args) {
+                GenRunnable gen = GENERATORS.get(arg.toLowerCase());
+                if (gen != null) {
+                    gen.run();
                 }
             }
         }
+    }
+
+    private static void genMaterials() throws Exception {
+        String generated = new MaterialGenerator(BURGER.get()).generate();
+        FileUtil.writeFile(new File(VALID_DIR, MaterialGenerator.CLASS_NAME + ".java"), generated);
     }
 
     private static void genParticles() throws Exception {
@@ -87,5 +97,9 @@ public class Bootstrap {
             File finalDir = new File(protoDir, info.getSender().name().toLowerCase());
             FileUtil.writeFile(new File(finalDir, info.getStandardClassName() + ".java"), generated);
         }
+    }
+
+    private interface GenRunnable {
+        void run() throws Exception;
     }
 }
