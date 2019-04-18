@@ -20,4 +20,4 @@ deploy:
   file: generated.zip
   skip_cleanup: true
   on:
-    tag: true
+    tags: true
