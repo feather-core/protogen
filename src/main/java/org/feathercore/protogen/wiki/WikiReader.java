@@ -43,14 +43,14 @@ import java.util.Set;
  * @author Kristian
  */
 public class WikiReader {
-    public static final String STANDARD_URL = "http://wiki.vg/index.php?title=Protocol&oldid=%s";
+    public static final String URL = "http://wiki.vg/index.php?title=Protocol&oldid=%s";
 
     // Stored packet information
     private List<WikiPacketInfo> packets;
     private List<WikiParticle> particles;
 
-    public WikiReader(String version) throws IOException {
-        load(Jsoup.connect(String.format(STANDARD_URL, version)).get());
+    public WikiReader(String url) throws IOException {
+        load(Jsoup.connect(url).get());
     }
 
     private void load(Document doc) {

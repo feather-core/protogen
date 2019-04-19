@@ -83,7 +83,7 @@ public class Bootstrap {
         // TODO workaround please
         WIKI.setHandle(() -> new WikiReader(DEFAULT_VERSION.equals(version) ?
                 "http://wiki.vg/Protocol" :
-                String.format("http://wiki.vg/index.php?title=Protocol&oldid=%s", version)));
+                String.format(WikiReader.URL, version)));
         GENERATORS.get(type).run();
     }
 
