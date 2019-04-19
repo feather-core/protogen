@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.stream.Collectors;
 
 /**
  * @author xtrafrancyz
@@ -43,22 +44,14 @@ public class NetworkUtil {
                 }
                 break;
             }
-            StringBuilder response = new StringBuilder();
-            String line;
             if (conn.getResponseCode() / 200 == 1) {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                while ((line = reader.readLine()) != null) {
-                    response.append(line);
+                try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                   return br.lines().collect(Collectors.joining());
                 }
             } else {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
-                while ((line = reader.readLine()) != null) {
-                    response.append(line);
-                }
                 conn.getInputStream();
                 return null;
             }
-            return response.toString();
         } finally {
             if (conn != null) {
                 conn.disconnect();
