@@ -16,6 +16,10 @@
 
 package org.feathercore.protogen;
 
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
+import joptsimple.OptionSpec;
+import joptsimple.util.EnumConverter;
 import org.feathercore.protogen.burger.BurgerReader;
 import org.feathercore.protogen.generate.MaterialGenerator;
 import org.feathercore.protogen.generate.PacketGenerator;
@@ -25,7 +29,8 @@ import org.feathercore.protogen.util.FileUtil;
 import org.feathercore.protogen.wiki.WikiPacketInfo;
 import org.feathercore.protogen.wiki.WikiReader;
 
-import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,69 +39,84 @@ import java.util.Map;
  * @author xtrafrancyz
  */
 public class Bootstrap {
-    private static final File VALID_DIR = new File("gen");
-    private static final File BROKEN_DIR = new File("gen-broken");
+    private static final Path VALID_DIR;
+    private static final Path BROKEN_DIR;
 
-    private static final CachedDataSource<BurgerReader> BURGER = new CachedDataSource<>(BurgerReader::new);
-    private static final CachedDataSource<WikiReader> WIKI = new CachedDataSource<>(WikiReader::new);
+    private static final String DEFAULT_VERSION = "1.13.2";
+    private static final CachedDataSource<BurgerReader> BURGER = new CachedDataSource<>();
+    private static final CachedDataSource<WikiReader> WIKI = new CachedDataSource<>();
 
-    private static final Map<String, GenRunnable> GENERATORS = new HashMap<String, GenRunnable>() {{
-        put("materials", Bootstrap::genMaterials);
-        put("sounds", Bootstrap::genSounds);
-        put("particles", Bootstrap::genParticles);
-        put("packets", Bootstrap::genPackets);
+    private static final Map<GeneratorType, GenRunnable> GENERATORS = new HashMap<GeneratorType, GenRunnable>() {{
+        put(GeneratorType.MATERIALS, Bootstrap::genMaterials);
+        put(GeneratorType.SOUNDS, Bootstrap::genSounds);
+        put(GeneratorType.PARTICLES, Bootstrap::genParticles);
+        put(GeneratorType.PACKETS, Bootstrap::genPackets);
+        put(GeneratorType.ALL, () -> {
+            Bootstrap.genMaterials();
+            Bootstrap.genSounds();
+            Bootstrap.genParticles();
+            Bootstrap.genPackets();
+        });
     }};
 
     public static void main(String[] args) throws Exception {
-        if (args.length == 0) {
-            System.out.println("Choose what to generate:");
-            System.out.println("    " + String.join(", ", GENERATORS.keySet()));
-            System.out.println("       or");
-            System.out.println("    all");
-            return;
-        }
+        OptionParser parser = new OptionParser();
+        OptionSpec<GeneratorType> specType = parser.accepts("type")
+                                               .withRequiredArg()
+                                               .ofType(GeneratorType.class)
+                                               .withValuesConvertedBy(new EnumConverter<GeneratorType>(GeneratorType.class) {})
+                                               .required();
+        OptionSpec<String> specVersion = parser.accepts("version")
+                                           .withOptionalArg()
+                                           .ofType(String.class)
+                                           .defaultsTo(DEFAULT_VERSION);
+        OptionSet options = parser.parse(args);
+        GeneratorType type = options.valueOf(specType);
+        String version = options.valueOf(specVersion);
+
+        System.out.println("Generator: " + type + ", version: " + version);
 
         FileUtil.deleteRecursive(VALID_DIR);
         FileUtil.deleteRecursive(BROKEN_DIR);
 
-        if (args.length == 1 && args[0].equalsIgnoreCase("all")) {
-            for (GenRunnable gen : GENERATORS.values()) {
-                gen.run();
-            }
-        } else {
-            for (final String arg : args) {
-                GenRunnable gen = GENERATORS.get(arg.toLowerCase());
-                if (gen != null) {
-                    gen.run();
-                }
-            }
-        }
+        BURGER.setHandle(() -> new BurgerReader(version));
+        // TODO workaround please
+        WIKI.setHandle(() -> new WikiReader(DEFAULT_VERSION.equals(version) ?
+                "http://wiki.vg/Protocol" :
+                String.format("http://wiki.vg/index.php?title=Protocol&oldid=%s", version)));
+        GENERATORS.get(type).run();
     }
 
     private static void genMaterials() throws Exception {
         String generated = new MaterialGenerator(BURGER.get()).generate();
-        FileUtil.writeFile(new File(VALID_DIR, MaterialGenerator.CLASS_NAME + ".java"), generated);
+        FileUtil.writeFile(VALID_DIR.resolve(MaterialGenerator.CLASS_NAME + ".java"), generated);
     }
 
     private static void genParticles() throws Exception {
         //String generated = new ParticleGenerator(new WikiReader(new File("proto.html")).getParticles()).generate();
         String generated = new ParticleGenerator(WIKI.get().getParticles()).generate();
-        FileUtil.writeFile(new File(VALID_DIR, ParticleGenerator.CLASS_NAME + ".java"), generated);
+        FileUtil.writeFile(VALID_DIR.resolve(ParticleGenerator.CLASS_NAME + ".java"), generated);
     }
 
     private static void genSounds() throws Exception {
         String generated = new SoundGenerator(BURGER.get().getSounds()).generate();
-        FileUtil.writeFile(new File(VALID_DIR, SoundGenerator.CLASS_NAME + ".java"), generated);
+        FileUtil.writeFile(VALID_DIR.resolve(SoundGenerator.CLASS_NAME + ".java"), generated);
     }
 
     private static void genPackets() throws Exception {
         List<WikiPacketInfo> packets = WIKI.get().getPackets();
         for (WikiPacketInfo info : packets) {
             String generated = new PacketGenerator(info).generate();
-            File protoDir = new File(info.isBroken() ? BROKEN_DIR : VALID_DIR, info.getProtocol().name().toLowerCase());
-            File finalDir = new File(protoDir, info.getSender().name().toLowerCase());
-            FileUtil.writeFile(new File(finalDir, info.getStandardClassName() + ".java"), generated);
+            Path protoDir = (info.isBroken() ? BROKEN_DIR : VALID_DIR).resolve(info.getProtocol().name().toLowerCase());
+            Path finalDir = protoDir.resolve(info.getSender().name().toLowerCase());
+            FileUtil.writeFile(finalDir.resolve(info.getStandardClassName() + ".java"), generated);
         }
+    }
+
+    static {
+        Path workingDir = Paths.get(System.getProperty("user.dir"));
+        VALID_DIR = workingDir.resolve("gen");
+        BROKEN_DIR = workingDir.resolve("gen-broken");
     }
 
     private interface GenRunnable {

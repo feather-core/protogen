@@ -16,31 +16,48 @@
 
 package org.feathercore.protogen.util;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 
 /**
  * @author xtrafrancyz
  */
-@SuppressWarnings({"ConstantConditions", "ResultOfMethodCallIgnored"})
 public class FileUtil {
-    public static void writeFile(File file, String content) {
-        file.getParentFile().mkdirs();
-        try (FileOutputStream fos = new FileOutputStream(file)) {
-            fos.write(content.getBytes(StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            e.printStackTrace();
+    public static void writeFile(Path file, String content) {
+        try {
+            Path parent = file.getParent();
+            if(parent != null && !Files.isDirectory(parent)) {
+                Files.createDirectories(parent);
+            }
+            Files.write(file, content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
+        } catch (IOException ex) {
+            ex.printStackTrace();
         }
     }
 
-    public static void deleteRecursive(File file) {
-        if (file.isDirectory()) {
-            for (File f : file.listFiles()) {
-                deleteRecursive(f);
+    public static void deleteRecursive(Path dir) {
+        if (Files.isDirectory(dir)) {
+            try {
+                Files.walkFileTree(dir, new SimpleFileVisitor<Path>() {
+
+                    @Override
+                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                        FileVisitResult result = super.postVisitDirectory(dir, exc);
+                        Files.delete(dir);
+                        return result;
+                    }
+
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        Files.delete(file);
+                        return super.visitFile(file, attrs);
+                    }
+                });
+            } catch (IOException ex) {
+                ex.printStackTrace();
             }
         }
-        file.delete();
     }
 }

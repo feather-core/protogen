@@ -22,10 +22,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.feathercore.protogen.util.NetworkUtil;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.*;
 
 /**
@@ -34,18 +31,15 @@ import java.util.*;
  * @author xtrafrancyz
  */
 public class BurgerReader {
-    public static final String STANDARD_URL = "https://pokechu22.github.io/Burger/1.13.2.json";
+
+    public static final String URL = "https://pokechu22.github.io/Burger/%s.json";
 
     private List<BurgerSound> sounds;
     private List<BurgerItem> items;
     private Map<String, BurgerBlock> blocks;
 
-    public BurgerReader() throws IOException {
-        parse(NetworkUtil.get(STANDARD_URL));
-    }
-
-    public BurgerReader(File file) throws IOException {
-        parse(new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8));
+    public BurgerReader(String version) throws IOException {
+        parse(NetworkUtil.get(String.format(URL, version)));
     }
 
     private void parse(String str) {
