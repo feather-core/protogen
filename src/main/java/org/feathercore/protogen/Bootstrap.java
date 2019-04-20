@@ -26,6 +26,7 @@ import org.feathercore.protogen.generate.PacketGenerator;
 import org.feathercore.protogen.generate.ParticleGenerator;
 import org.feathercore.protogen.generate.SoundGenerator;
 import org.feathercore.protogen.util.FileUtil;
+import org.feathercore.protogen.version.MinecraftVersion;
 import org.feathercore.protogen.wiki.WikiPacketInfo;
 import org.feathercore.protogen.wiki.WikiReader;
 
@@ -42,7 +43,7 @@ public class Bootstrap {
     private static final Path VALID_DIR;
     private static final Path BROKEN_DIR;
 
-    private static final String DEFAULT_VERSION = "1.13.2";
+    private static final MinecraftVersion DEFAULT_VERSION = MinecraftVersion._1_13_2;
     private static final CachedDataSource<BurgerReader> BURGER = new CachedDataSource<>();
     private static final CachedDataSource<WikiReader> WIKI = new CachedDataSource<>();
 
@@ -66,24 +67,28 @@ public class Bootstrap {
                                                .ofType(GeneratorType.class)
                                                .withValuesConvertedBy(new EnumConverter<GeneratorType>(GeneratorType.class) {})
                                                .required();
-        OptionSpec<String> specVersion = parser.accepts("version")
-                                           .withOptionalArg()
-                                           .ofType(String.class)
-                                           .defaultsTo(DEFAULT_VERSION);
+        OptionSpec<MinecraftVersion> specVersion = parser.accepts("version")
+                                                         .withRequiredArg()
+                                                         .ofType(MinecraftVersion.class)
+                                                         .withValuesConvertedBy(new EnumConverter<MinecraftVersion>(MinecraftVersion.class) {
+                                                             @Override
+                                                             public MinecraftVersion convert(String value) {
+                                                                 return super.convert("_".concat(value.replace('.', '_')));
+                                                             }
+                                                         })
+                                                         .defaultsTo(DEFAULT_VERSION);
         OptionSet options = parser.parse(args);
         GeneratorType type = options.valueOf(specType);
-        String version = options.valueOf(specVersion);
+        MinecraftVersion version = options.valueOf(specVersion);
 
         System.out.println("Generator: " + type + ", version: " + version);
 
         FileUtil.deleteRecursive(VALID_DIR);
         FileUtil.deleteRecursive(BROKEN_DIR);
 
-        BURGER.setHandle(() -> new BurgerReader(version));
+        BURGER.setHandle(() -> new BurgerReader(version.getName()));
         // TODO workaround please
-        WIKI.setHandle(() -> new WikiReader(DEFAULT_VERSION.equals(version) ?
-                "http://wiki.vg/Protocol" :
-                String.format(WikiReader.URL, version)));
+        WIKI.setHandle(() -> new WikiReader(version.getLink()));
         GENERATORS.get(type).run();
     }
 
