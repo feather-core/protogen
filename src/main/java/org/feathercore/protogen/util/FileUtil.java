@@ -24,7 +24,10 @@ import java.nio.file.attribute.BasicFileAttributes;
 /**
  * @author xtrafrancyz
  */
-public class FileUtil {
+public final class FileUtil {
+
+    private FileUtil() { }
+
     public static void writeFile(Path file, String content) {
         try {
             Path parent = file.getParent();

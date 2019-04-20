@@ -26,7 +26,10 @@ import java.util.stream.Collectors;
 /**
  * @author xtrafrancyz
  */
-public class NetworkUtil {
+public final class NetworkUtil {
+
+    private NetworkUtil() { }
+
     public static String get(String url) throws IOException {
         HttpURLConnection conn = null;
         try {
