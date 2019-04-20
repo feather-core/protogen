@@ -22,11 +22,14 @@ import com.google.gson.JsonObject;
  * @author xtrafrancyz
  */
 public class BurgerItem {
+    //private static boolean warned;
+
     private String textId;
     private String enumName;
     private int id;
     private int maxStackSize;
-    
+    private boolean solid;
+
     public BurgerItem(JsonObject json) {
         this.textId = json.get("text_id").getAsString();
         this.id = json.get("numeric_id").getAsInt();
@@ -48,5 +51,9 @@ public class BurgerItem {
 
     public int getMaxStackSize() {
         return maxStackSize;
+    }
+
+    public boolean isSolid() {
+        return solid;
     }
 }

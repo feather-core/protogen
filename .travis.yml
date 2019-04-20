@@ -5,7 +5,7 @@ jdk:
 install: true
 script:
   - mvn clean package
-  - java -jar ./target/protogen-1.0-SNAPSHOT-shaded.jar all
+  - java -jar ./target/protogen-1.0-SNAPSHOT-shaded.jar --type all
 
 cache:
   directories:

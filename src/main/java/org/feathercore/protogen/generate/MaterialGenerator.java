@@ -63,6 +63,7 @@ public class MaterialGenerator extends ClassGenerator {
         sb.append(T1).append("@Getter(AccessLevel.NONE) int id;").append(LF);
         sb.append(T1).append("int maxStackSize;").append(LF);
         sb.append(T1).append("boolean block;").append(LF);
+        sb.append(T2).append("boolean solid;").append(LF);
 
         sb.append(LF);
 
@@ -90,7 +91,8 @@ public class MaterialGenerator extends ClassGenerator {
             sb.append(T1).append(item.getEnumName())
               .append("(").append(item.getId()).append(", ")
               .append(item.getMaxStackSize()).append(", ")
-              .append(blocks.containsKey(item.getTextId()))
+              .append(blocks.containsKey(item.getTextId())).append(", ")
+              .append(item.isSolid())
               .append(")");
 
             if (i == this.items.size() - 1) {

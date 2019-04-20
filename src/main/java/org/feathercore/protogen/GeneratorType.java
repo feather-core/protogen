@@ -16,25 +16,11 @@
 
 package org.feathercore.protogen;
 
-/**
- * @author xtrafrancyz
- */
-public class CachedDataSource<T> {
-    private Creator<T> creator;
-    private T cache;
+public enum GeneratorType {
 
-    public T get() throws Exception {
-        if (cache == null) {
-            cache = creator.create();
-        }
-        return cache;
-    }
-
-    public void setHandle(Creator<T> creator) {
-        this.creator = creator;
-    }
-
-    public interface Creator<T> {
-        T create() throws Exception;
-    }
+    MATERIALS,
+    SOUNDS,
+    PARTICLES,
+    PACKETS,
+    ALL
 }
