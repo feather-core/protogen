@@ -21,6 +21,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.feathercore.protogen.util.NetworkUtil;
+import org.feathercore.protogen.version.MinecraftVersion;
 
 import java.io.IOException;
 import java.util.*;
@@ -38,11 +39,11 @@ public class BurgerReader {
     private List<BurgerItem> items;
     private Map<String, BurgerBlock> blocks;
 
-    public BurgerReader(String version) throws IOException {
-        parse(NetworkUtil.get(String.format(URL, version)));
+    public BurgerReader(MinecraftVersion version) throws IOException {
+        parse(NetworkUtil.get(String.format(URL, version.getName())), version);
     }
 
-    private void parse(String str) {
+    private void parse(String str, MinecraftVersion version) {
         JsonObject root = new JsonParser()
                 .parse(str)
                 .getAsJsonArray()
@@ -56,6 +57,8 @@ public class BurgerReader {
             JsonObject sound = entry.getValue().getAsJsonObject();
             this.sounds.add(new BurgerSound(entry.getKey(), sound.get("id").getAsInt()));
         }
+        JsonObject classes = root.getAsJsonObject("classes");
+        version.setBlockClass(classes.getAsJsonPrimitive("block.register").getAsString());
 
         // Items
         this.items = new ArrayList<>();

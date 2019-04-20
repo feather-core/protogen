@@ -86,7 +86,7 @@ public class Bootstrap {
         FileUtil.deleteRecursive(VALID_DIR);
         FileUtil.deleteRecursive(BROKEN_DIR);
 
-        BURGER.setHandle(() -> new BurgerReader(version.getName()));
+        BURGER.setHandle(() -> new BurgerReader(version));
         // TODO workaround please
         WIKI.setHandle(() -> new WikiReader(version.getLink()));
         GENERATORS.get(type).run();

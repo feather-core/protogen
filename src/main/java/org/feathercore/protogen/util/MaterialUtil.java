@@ -17,43 +17,67 @@
 package org.feathercore.protogen.util;
 
 import org.feathercore.protogen.version.MinecraftVersion;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.tree.ClassNode;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Field;
-import java.net.URI;
-import java.nio.file.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public final class MaterialUtil {
 
     private MaterialUtil() { }
 
-    public static Set<String> buildSolidMaterials(Path jar, String initClass, MinecraftVersion version) throws IOException {
-        URI uri = jar.toUri();
-        // Prevent encoding issues, meh
+    public static Set<String> buildSolidMaterials(Path jar, MinecraftVersion version)
+            throws IOException {
+        if (version.getMaterialSlot() == -1) {
+            System.err.println("isSolid is unsupported for specified version, skipping");
+            return Collections.emptySet();
+        }
+        // Let's rock!
+        ClassLoader loader = MaterialUtil.class.getClassLoader();
         try {
-            Field field = URI.class.getDeclaredField("scheme");
-            field.setAccessible(true);
-            field.set(uri, "jar:file");
-        } catch (IllegalAccessException | NoSuchFieldException ex) {
+            Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+            method.setAccessible(true);
+            method.invoke(loader, jar.toUri().toURL());
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
+            System.err.println("Exception occurred while injecting jar into class path, skipping isSolid");
             ex.printStackTrace();
-            uri = URI.create("jar:file:" + uri.getPath());
+            return Collections.emptySet();
         }
-        ClassNode classNode;
-        try (FileSystem fs = FileSystems.newFileSystem(uri, Collections.emptyMap())) {
-            Path path = fs.getPath(initClass.concat(".class").replace('.', '/'));
-            if (!Files.exists(path)) {
-                throw new FileSystemException("No such class: " + initClass);
-            }
-            try (InputStream in = Files.newInputStream(path)) {
-                classNode = new ClassNode();
-                new ClassReader(in).accept(classNode, 0);
-            }
+        Class<?> klass;
+        try {
+            klass = Class.forName(version.getBlockClass(), true, loader);
+        } catch (ClassNotFoundException ex) {
+            System.err.println("Class loader failed to load class, skipping isSolid");
+            ex.printStackTrace();
+            return Collections.emptySet();
         }
+        // Call init
+        Optional<Method> optional = Arrays.stream(klass.getDeclaredMethods())
+                                          .filter(m -> Modifier.isPublic(m.getModifiers()))
+                                          .filter(m -> Modifier.isStatic(m.getModifiers()))
+                                          .filter(m -> Void.TYPE == m.getReturnType())
+                                          .findFirst();
+        if (!optional.isPresent()) {
+            System.err.println("No init method in Block class, skipping isSolid");
+            return Collections.emptySet();
+        }
+        try {
+            optional.get().invoke(null);
+        } catch (IllegalAccessException | InvocationTargetException ex) {
+            System.err.println("Init method invocation failed, skipping isSolid");
+            ex.printStackTrace();
+            return Collections.emptySet();
+        }
+        // Search for material field
+        // TODO
+        return Collections.emptySet();
     }
 }
