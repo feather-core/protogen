@@ -31,7 +31,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -44,22 +43,14 @@ import java.util.Set;
  * @author Kristian
  */
 public class WikiReader {
-    public static final String STANDARD_URL = "http://www.wiki.vg/Protocol";
+    public static final String URL = "http://wiki.vg/index.php?title=Protocol&oldid=%s";
 
     // Stored packet information
     private List<WikiPacketInfo> packets;
     private List<WikiParticle> particles;
 
-    public WikiReader() throws IOException {
-        this(STANDARD_URL);
-    }
-
     public WikiReader(String url) throws IOException {
         load(Jsoup.connect(url).get());
-    }
-
-    public WikiReader(File file) throws IOException {
-        load(Jsoup.parse(file, null));
     }
 
     private void load(Document doc) {
